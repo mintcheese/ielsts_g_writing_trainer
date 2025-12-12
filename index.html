@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IELTS Writing Trainer</title>
+    <title>IELTS Writing Jigsaw Trainer</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -120,7 +120,7 @@
 </head>
 <body>
 
-    <h1>IELTS Writing Trainer</h1>
+    <h1>IELTS Jigsaw Trainer</h1>
     
     <div class="container">
         
@@ -169,6 +169,9 @@
                 <button id="btn-prev" class="btn btn-secondary" style="display:none;" onclick="game.prevQuestion()">⬅ Previous</button>
                 
                 <button id="btn-check" class="btn" onclick="game.checkAnswer()">Check Answer</button>
+                <!-- NEW Show Answer Button -->
+                <button id="btn-show" class="btn" style="display:none; background-color: #f39c12;" onclick="game.showCorrectAnswer()">Show Answer</button>
+                
                 <button id="btn-next" class="btn" style="display:none;" onclick="game.nextQuestion()">Next ➡</button>
                 <button class="btn btn-secondary" onclick="gameManager.endSessionEarly()">Quit</button>
             </div>
@@ -461,6 +464,7 @@
                 const checkBtn = document.getElementById('btn-check');
                 const nextBtn = document.getElementById('btn-next');
                 const prevBtn = document.getElementById('btn-prev');
+                const showBtn = document.getElementById('btn-show');
 
                 answerArea.innerHTML = '';
                 piecesArea.innerHTML = '';
@@ -484,6 +488,7 @@
                     contextBox.style.display = 'block';
                     
                     checkBtn.style.display = 'none';
+                    showBtn.style.display = 'none';
                     nextBtn.style.display = 'inline-block';
                 } 
                 else {
@@ -496,6 +501,7 @@
 
                     checkBtn.style.display = 'inline-block';
                     checkBtn.disabled = false;
+                    showBtn.style.display = 'none';
                     nextBtn.style.display = 'none';
                     document.getElementById('instruction-text').innerText = "Drag pieces to reorder or click to remove.";
                 }
@@ -572,6 +578,7 @@
                 const feedback = document.getElementById('feedback');
                 const contextBox = document.getElementById('context-box');
                 const answerArea = document.getElementById('answer-area');
+                const showBtn = document.getElementById('btn-show');
 
                 if (!this.firstAttemptMade) {
                     this.firstAttemptMade = true;
@@ -597,6 +604,7 @@
                     this.sessionFinalStates.push(this.userSelection);
 
                     document.getElementById('btn-check').style.display = 'none';
+                    showBtn.style.display = 'none';
                     document.getElementById('btn-next').style.display = 'inline-block';
                     
                 } else {
@@ -605,7 +613,52 @@
                     contextBox.style.display = 'none';
                     answerArea.classList.remove('locked');
                     document.getElementById('btn-next').style.display = 'none';
+                    // Show "Show Answer" button
+                    showBtn.style.display = 'inline-block';
                 }
+            },
+
+            showCorrectAnswer: function() {
+                // Should already be true if coming from checkAnswer, but safety check
+                if (!this.firstAttemptMade) {
+                    this.firstAttemptMade = true;
+                    this.sessionResults.push({
+                        target: this.currentTarget.text,
+                        userAnswer: "Gave Up",
+                        isCorrect: false
+                    });
+                }
+
+                // Visual Update
+                const answerArea = document.getElementById('answer-area');
+                const piecesArea = document.getElementById('pieces-area');
+                
+                answerArea.innerHTML = '';
+                piecesArea.innerHTML = ''; // Clear the pool
+                
+                // Create pieces in correct order
+                const correctWords = this.currentTarget.text.split(" ");
+                correctWords.forEach(word => {
+                    let block = this.createPiece(word, true);
+                    answerArea.appendChild(block);
+                });
+                
+                // Sync internal state
+                this.userSelection = [...correctWords];
+                this.sessionFinalStates.push(this.userSelection);
+
+                // UI Finalization
+                document.getElementById('feedback').innerHTML = "<span style='color: #e67e22'>Correct Answer Shown</span>";
+                document.getElementById('context-text').innerText = this.currentTarget.context || "Standard phrase.";
+                document.getElementById('context-box').style.display = 'block';
+                answerArea.classList.add('locked');
+                
+                document.getElementById('btn-check').style.display = 'none';
+                document.getElementById('btn-show').style.display = 'none';
+                document.getElementById('btn-next').style.display = 'inline-block';
+                
+                // Read it out
+                speechManager.speak(this.currentTarget.text);
             },
 
             prevQuestion: function() {
