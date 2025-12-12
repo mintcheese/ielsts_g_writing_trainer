@@ -250,7 +250,13 @@
                 // Cancel any currently playing speech to avoid overlap
                 window.speechSynthesis.cancel();
                 
-                const utterance = new SpeechSynthesisUtterance(text);
+                let textToSpeak = text;
+                // Fix for "Capital I" reading: Force phonetic pronunciation
+                if (text === "I") {
+                    textToSpeak = "Eye"; 
+                }
+                
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
                 // Attempt to set a British voice for IELTS feel, fallback to default
                 utterance.lang = 'en-GB'; 
                 utterance.rate = 1; // Normal speed
