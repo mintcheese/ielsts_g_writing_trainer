@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IELTS Writing Jigsaw Trainer</title>
+    <title>IELTS Writing Trainer</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -24,6 +24,12 @@
         /* Game UI */
         .status-bar { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 20px; padding: 10px; background: #ecf0f1; border-radius: 8px; }
         
+        /* Wrapper for positioning the clear button */
+        .drop-zone-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
         .drop-zone { 
             min-height: 80px;
             border: 2px dashed var(--secondary); 
@@ -47,6 +53,24 @@
             pointer-events: none; /* Disables all clicks and drags inside */
         }
         
+        /* Clear Button Style */
+        .btn-clear-zone {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0.8;
+            z-index: 10;
+        }
+        .btn-clear-zone:hover { opacity: 1; }
+        .drop-zone.locked + .btn-clear-zone { display: none; } /* Hide when locked */
+
         .pieces-pool { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 10px; min-height: 40px; }
         
         .puzzle-piece { 
@@ -120,7 +144,7 @@
 </head>
 <body>
 
-    <h1>IELTS Jigsaw Trainer</h1>
+    <h1>IELTS Writing Trainer</h1>
     
     <div class="container">
         
@@ -151,8 +175,11 @@
 
             <p id="instruction-text">Drag pieces to reorder or click to remove.</p>
             
-            <!-- Drop Zone (Answer) -->
-            <div id="answer-area" class="drop-zone" ondragover="allowDrop(event)" ondrop="handleDropZone(event)"></div>
+            <!-- Drop Zone (Answer) with Clear Button -->
+            <div class="drop-zone-wrapper">
+                <div id="answer-area" class="drop-zone" ondragover="allowDrop(event)" ondrop="handleDropZone(event)"></div>
+                <button class="btn-clear-zone" onclick="game.clearAnswerArea()" title="Clear All">Clear</button>
+            </div>
             
             <!-- Context/Help Box -->
             <div id="context-box" class="context-box">
@@ -562,6 +589,16 @@
 
                 answerArea.appendChild(block);
                 this.rebuildSelection();
+            },
+
+            // --- CLEAR DROP ZONE (NEW) ---
+            clearAnswerArea: function() {
+                const area = document.getElementById('answer-area');
+                if(area.classList.contains('locked')) return;
+                
+                // Simulate click on all blocks to safely remove them using existing logic
+                const blocks = area.querySelectorAll('.answer-block');
+                blocks.forEach(b => b.click());
             },
 
             rebuildSelection: function() {
